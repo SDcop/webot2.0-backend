@@ -1,0 +1,24 @@
+# 项目相关配置
+spring:
+  application:
+    #应用名
+    name: weBot
+
+  # 驼峰下划线转换
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+
+# 监听端口
+server:
+  port: 8080
+
+# 日志
+logging:
+  level:
+    com.base: @logging.level@
+    org.springframework: warn
+    tech.powerjob.worker.background: warn
+    org.mybatis.spring.mapper: error
+  config: classpath:logback.xml
+
+

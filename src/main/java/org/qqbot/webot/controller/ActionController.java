@@ -1,5 +1,6 @@
 package org.qqbot.webot.controller;
 
+import cn.hutool.json.JSONObject;
 import org.qqbot.webot.entity.CommonEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,12 +11,11 @@ import org.springframework.web.bind.annotation.*;
  */
 
 @RestController
-@RequestMapping("/oneBot")
+@RequestMapping("")
 public class ActionController {
 
-    @PostMapping("/msg")
-    public CommonEntity msg (@RequestBody CommonEntity commonEntity) {
-        System.out.println(commonEntity.getSelfId());
-        return commonEntity;
+    @PostMapping("/oneBot")
+    public void msg (@RequestBody JSONObject jsonObject) {
+        
     }
 }
