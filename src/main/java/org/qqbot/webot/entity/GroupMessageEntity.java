@@ -25,6 +25,7 @@ public class GroupMessageEntity extends CommonEntity {
     String rawMessage;          //CQ 码格式的消息
     int font;                   //字体
     User sender;                //发送者信息
+    boolean group;              //是否是群消息
     Long groupId;               //群号
     Anonymous anonymous;        //匿名信息, 如果不是匿名消息则为 null
 }

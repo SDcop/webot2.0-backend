@@ -21,4 +21,7 @@ logging:
     org.mybatis.spring.mapper: error
   config: classpath:logback.xml
 
-
+jwt:
+  header: "Authorization" #token返回头部
+  secret: "1b1b553ded61cb43f225c01f3ae25eaf.XuybO9EEIm8wZHDH"  #密钥
+  expireTime: 60000 #token有效时间 (分钟) 建议一小时以上
