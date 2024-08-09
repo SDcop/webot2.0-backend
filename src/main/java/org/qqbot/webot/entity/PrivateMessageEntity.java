@@ -16,14 +16,14 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class PrivateMessageEntity extends CommonEntity {
-    String messageType;         //消息类型
-    String subType;             //表示消息的子类型
-    int messageId;              //消息 ID
-    Long userId;                //发送者 QQ 号
-    List<Chain> message;        //一个消息链
-    String rawMessage;          //CQ 码格式的消息
-    int font;                   //字体
-    User sender;                //发送者信息
-    Long targetId;              //接收者 QQ 号
-    int tempSource;             //临时会话来源
+    public String messageType;         //消息类型
+    public String subType;             //表示消息的子类型
+    public int messageId;              //消息 ID
+    public long userId;                //发送者 QQ 号
+    public List<Chain> message;        //一个消息链
+    public String rawMessage;          //CQ 码格式的消息
+    public int font;                   //字体
+    public User sender;                //发送者信息
+    public long targetId;              //接收者 QQ 号
+    public int tempSource;             //临时会话来源
 }

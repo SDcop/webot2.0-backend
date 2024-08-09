@@ -1,15 +1,16 @@
 package org.qqbot.webot.config;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.TokenExpiredException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
 import java.util.Date;
+import java.util.HashMap;
+
 /**
  * @author shq
  * @date 2022/9/6
@@ -24,61 +25,55 @@ import java.util.Date;
 @Component
 @ConfigurationProperties(prefix = "jwt")
 public class JWTConfig {
-    private static final Logger log = LoggerFactory.getLogger(JWTConfig.class);
-    //token 头部
-    @Value("${jwt.header}")
-    public static String header;
+    private static final Log log = LogFactory.get();
 
-    //token 前缀
-    public static String tokenPrefix = "";
+    //apiKey
+    @Value("${jwt.apiKey}")
+    public String apiKey;
 
     //签名秘钥
     @Value("${jwt.secret}")
-    public static  String secret;
+    public String secret;
 
     //有效期
     @Value("${jwt.expireTime}")
-    public static  long expireTime;
+    public long expireTime;
 
     //存入客户端token的key名
-    public static final String TOKEN = "Authorization";
-
-    public void setHeader(String header){
-        JWTConfig.header = header;
-    }
-
-    public static void setTokenPrefix(String tokenPrefix) {
-        JWTConfig.tokenPrefix = tokenPrefix;
-    }
-
-    public static void setSecret(String secret) {
-        JWTConfig.secret = secret;
-    }
-
-    public static void setExpireTime(long expireTime) {
-        JWTConfig.expireTime = expireTime;
-    }
+    public static final String TOKEN = "Bearer";
 
     /**
      * 创建token
-     * @param sub
      */
-    public static String createToken(String sub){
-        return tokenPrefix + JWT.create()
-                .withSubject(sub)
-                .withExpiresAt(new Date(System.currentTimeMillis()+expireTime))
-                .sign(Algorithm.HMAC512(secret));
+    public String createToken(){
+        HashMap<String,Object> header = new HashMap<>();
+        Date expireDate = new Date(System.currentTimeMillis() + expireTime * 1000);
+        Date date = new Date();
+        header.put("alg", "HS256");
+        header.put("typ", "SIGN");
+        return JWT.create()
+                //header
+                .withHeader(header)
+                //payload
+                .withClaim("api_key",apiKey)
+                .withClaim("exp",expireTime)
+                .withClaim("timestamp",date.getTime())
+                //过期日期
+                .withExpiresAt(expireDate)
+                //签发时间
+                .withIssuedAt(new Date())
+                //秘钥
+                .sign(Algorithm.HMAC256(secret));
     }
 
     /**
      * 验证token
-     * @param token
      */
-    public static String validateToken(String token) throws Exception{
+    public String validateToken(String token) throws Exception{
         try {
             return JWT.require(Algorithm.HMAC512(secret))
                     .build()
-                    .verify(token.replace(tokenPrefix, ""))
+                    .verify(token)
                     .getSubject();
         } catch (TokenExpiredException e){
             return "";
@@ -89,16 +84,13 @@ public class JWTConfig {
 
     /**
      * 检查token是否需要更新
-     * @param token
      */
-    public static boolean isNeedUpdate(String token){
+    public boolean isNeedUpdate(String token){
         //获取token过期时间
         Date expiresAt = null;
         try {
-            expiresAt = JWT.require(Algorithm.HMAC512(secret))
-                    .build()
-                    .verify(token.replace(tokenPrefix, ""))
-                    .getExpiresAt();
+            expiresAt = JWT.require(Algorithm.HMAC256(secret))
+                    .build().verify(token).getExpiresAt();
         } catch (TokenExpiredException e){
             return true;
         } catch (Exception e){

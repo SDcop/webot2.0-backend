@@ -11,6 +11,6 @@ import lombok.Data;
 
 @Data
 public class Chain {
-    String type;        //消息类型
-    JSONObject data;    //消息内容
+    public String type;        //消息类型
+    public JSONObject data;    //消息内容
 }

@@ -9,7 +9,7 @@ import lombok.Data;
  */
 @Data
 public class Anonymous {
-    Long id;            //匿名用户 ID
-    String name;        //匿名用户名称
-    String flag;        //匿名用户 flag, 在调用禁言 API 时需要传入
+    public long id;            //匿名用户 ID
+    public String name;        //匿名用户名称
+    public String flag;        //匿名用户 flag, 在调用禁言 API 时需要传入
 }

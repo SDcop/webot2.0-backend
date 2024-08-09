@@ -10,7 +10,20 @@ spring:
 
 # 监听端口
 server:
+  # qq上报端口
   port: 8080
+  # http请求地址
+  qqUrl: "127.0.0.1:3000",
+  modelUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+
+# 大语言模型选择
+model:
+  # 聊天模型
+  chat: "glm-4-0520"
+  # 视频模型
+  video: ""
+  # 图片模型
+  pic: ""
 
 # 日志
 logging:
@@ -21,7 +34,12 @@ logging:
     org.mybatis.spring.mapper: error
   config: classpath:logback.xml
 
+# token
 jwt:
-  header: "Authorization" #token返回头部
+  apiKey: "1b1b553ded61cb43f225c01f3ae25eaf" #属性表示用户标识 id，即用户API Key的{id}部分
   secret: "1b1b553ded61cb43f225c01f3ae25eaf.XuybO9EEIm8wZHDH"  #密钥
   expireTime: 60000 #token有效时间 (分钟) 建议一小时以上
+
+# boot qq号
+account:
+  qq: "392290694"

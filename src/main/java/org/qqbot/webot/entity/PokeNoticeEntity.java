@@ -12,9 +12,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class PokeNoticeEntity extends CommonEntity{
-    String noticeType;      //消息类型
-    String subType;         //提示类型
-    Long groupId;           //群号
-    Long userId;            //发送者 QQ 号
-    Long targetId;          //被戳者 QQ 号
+    public String noticeType;      //消息类型
+    public String subType;         //提示类型
+    public Long groupId;           //群号
+    public Long userId;            //发送者 QQ 号
+    public Long targetId;          //被戳者 QQ 号
 }

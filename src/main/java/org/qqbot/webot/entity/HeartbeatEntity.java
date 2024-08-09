@@ -7,6 +7,5 @@ package org.qqbot.webot.entity;
  */
 
 public class HeartbeatEntity {
-    String metaEventType;
-
+    public String metaEventType;
 }

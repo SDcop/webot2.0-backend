@@ -17,15 +17,15 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class GroupMessageEntity extends CommonEntity {
-    String messageType;         //消息类型
-    String subType;             //表示消息的子类型
-    int messageId;              //消息 ID
-    Long userId;                //发送者 QQ 号
-    List<Chain> message;        //一个消息链
-    String rawMessage;          //CQ 码格式的消息
-    int font;                   //字体
-    User sender;                //发送者信息
-    boolean group;              //是否是群消息
-    Long groupId;               //群号
-    Anonymous anonymous;        //匿名信息, 如果不是匿名消息则为 null
+    public String messageType;         //消息类型
+    public String subType;             //表示消息的子类型
+    public int messageId;              //消息 ID
+    public long userId;                //发送者 QQ 号
+    public List<Chain> message;        //一个消息链
+    public String rawMessage;          //CQ 码格式的消息
+    public int font;                   //字体
+    public User sender;                //发送者信息
+    public boolean group;              //是否是群消息
+    public long groupId;               //群号
+    public Anonymous anonymous;        //匿名信息, 如果不是匿名消息则为 null
 }

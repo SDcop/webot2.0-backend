@@ -13,6 +13,6 @@ import java.util.List;
 
 @Data
 public class PrivateReplyEntity {
-    List<Chain> message;        //要回复的内容
-    boolean autoEscape;         //消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 reply 字段是字符串时有效
+    public List<Chain> message;        //要回复的内容
+    public boolean autoEscape;         //消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 reply 字段是字符串时有效
 }
