@@ -52,17 +52,29 @@ public class GroupActionService {
     @Resource
     HttpRequestSend httpRequestSend;
 
-    public JSONObject replyGroupMessage(JSONObject message) {
+    public JSONObject replyGroupMessage(GroupMessageEntity message) {
         GroupReplyEntity groupReplyEntity = new GroupReplyEntity();
-        GroupMessageEntity groupMessage = JSON.to(GroupMessageEntity.class,message);
         // 如果是at了boot
-        if(isAt(groupMessage.getMessage())){
-            String str = (String) groupMessage.getMessage().getLast().getData().get("text");
-            log.info("bot ======> get message {}",str);
-            str = str.trim();
-            if(str.equals("你好")){
+        if(isAt(message.getMessage())){
+            String str = (String) message.getMessage().getLast().getData().get("text"); //获取文字内容
+            long sender = message.getSender().getUserId();
+            long groupID = message.getGroupId();
 
+            str = str.trim(); //去除空格
+            log.info("bot ======> get message {} from {}",str,sender);
+            //调用ai接口
+            BigModelResponseEntity bigModelResponseEntity = modelResponse(str);
+            //构造字符串的返回内容
+            StringBuilder builder = new StringBuilder();
+            for(int i=0;i<bigModelResponseEntity.getChoices().size();i++){
+                builder.append(bigModelResponseEntity.getChoices().get(i).getMessage().getContent());
             }
+
+            //回复消息
+            List<Chain> chains = buildChain(sender,builder.toString(),-1,null);
+            groupReplyEntity.setReply(chains);
+
+            log.info("bot ======> send message {} to {}",builder.toString(),sender);
         }
         return (JSONObject) JSON.toJSON(groupReplyEntity);
     }
@@ -93,10 +105,51 @@ public class GroupActionService {
         bigModelEntity.setModel(chatModel);
         bigModelEntity.setMessages(list);
 
+        //http请求
+        return httpRequestSend.POST(modelUrl,JSONObject.from(bigModelEntity), BigModelResponseEntity.class);
+    }
 
-
-        httpRequestSend.POST(modelUrl, BigModelResponseEntity.class);
-
-        return null;
+    /**
+     * @param at   是否@回复 无则传入-1;
+     * @param text 是否有文本回复  无则为null
+     * @param face 是否有表情回复  无则为 -1;
+     * @param file 是否有文件回复  无则为null;
+     * @return 消息链
+     */
+    public List<Chain> buildChain(long at,String text,int face,String file){
+        List<Chain> list = new ArrayList<>();
+        if(at !=-1){
+            Chain chain = new Chain();
+            chain.setType("at");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("qq",at);
+            chain.setData(jsonObject);
+            list.add(chain);
+        }
+        if(text != null){
+            Chain chain = new Chain();
+            chain.setType("text");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("text",text);
+            chain.setData(jsonObject);
+            list.add(chain);
+        }
+        if(face != -1){
+            Chain chain = new Chain();
+            chain.setType("face");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("face",face);
+            chain.setData(jsonObject);
+            list.add(chain);
+        }
+        if(text != null){
+            Chain chain = new Chain();
+            chain.setType("image");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("image",file);
+            chain.setData(jsonObject);
+            list.add(chain);
+        }
+        return list;
     }
 }

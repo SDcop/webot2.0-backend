@@ -3,6 +3,7 @@ package org.qqbot.webot.controller;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import jakarta.annotation.Resource;
+import org.qqbot.webot.entity.GroupMessageEntity;
 import org.qqbot.webot.service.GroupActionService;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,13 +21,13 @@ public class ActionController {
     GroupActionService groupActionService;
 
     @PostMapping("/oneBot")
-    public JSONObject action (@RequestBody JSONObject jsonObject) {
+    public JSONObject action (@RequestBody GroupMessageEntity groupMessage) {
         //判断上报的消息类型
-        String msgType = jsonObject.getString("post_type");
+        String msgType = groupMessage.getPostType();
 
         switch (msgType){
             case "message":
-                return groupActionService.replyGroupMessage(jsonObject);
+                return groupActionService.replyGroupMessage(groupMessage);
         }
         return null;
     }

@@ -13,7 +13,7 @@ server:
   # qq上报端口
   port: 8080
   # http请求地址
-  qqUrl: "127.0.0.1:3000",
+  qqUrl: "127.0.0.1:3000"
   modelUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
 # 大语言模型选择

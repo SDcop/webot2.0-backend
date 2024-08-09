@@ -1,6 +1,6 @@
 package org.qqbot.webot.entity.common;
 
-import cn.hutool.json.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import lombok.Data;
 
 /**

@@ -20,6 +20,7 @@ public class Status {
 /**
  * 心跳包统计信息
  */
+@Data
 class StatusStatistics{
     public long packetReceived;        //收包数
     public long packetSent;            //发包数

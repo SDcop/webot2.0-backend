@@ -50,13 +50,13 @@ public class JWTConfig {
         Date expireDate = new Date(System.currentTimeMillis() + expireTime * 1000);
         Date date = new Date();
         header.put("alg", "HS256");
-        header.put("typ", "SIGN");
+        header.put("sign_type", "SIGN");
         return JWT.create()
                 //header
                 .withHeader(header)
                 //payload
                 .withClaim("api_key",apiKey)
-                .withClaim("exp",expireTime)
+                .withClaim("exp",expireDate.getTime())
                 .withClaim("timestamp",date.getTime())
                 //过期日期
                 .withExpiresAt(expireDate)

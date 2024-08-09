@@ -13,7 +13,7 @@ import java.util.List;
 
 @Data
 public class GroupReplyEntity {
-    public List<Chain> reply;    //要回复的内容
+    public List<Chain> reply;      //要回复的内容
     public boolean autoEscape;     //消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 reply 字段是字符串时有效
     public boolean atSender;       //是否要在回复开头 at 发送者 ( 自动添加 ) , 发送者是匿名用户时无效
     public boolean delete;         //撤回该条消息

@@ -2,6 +2,12 @@ package org.qqbot.webot.entity.common;
 
 import lombok.Data;
 
+/**
+ * @author shq
+ * @date 2024/8/9
+ * @describe qq消息模板
+ */
+
 @Data
 public class ModelMessage {
 
