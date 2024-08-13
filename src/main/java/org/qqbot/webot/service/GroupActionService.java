@@ -68,12 +68,17 @@ public class GroupActionService {
     @Async("getAsyncExecutor")
     public CompletableFuture<JSONObject> replyGroupMessage(GroupMessageEntity message) {
         GroupReplyEntity groupReplyEntity = new GroupReplyEntity();
+        long groupID = message.getGroupId();
+
+        // 无需@回复的群
+        boolean needAt = groupID != 772944742;
+
         // 如果是at了boot
-        if(isAt(message.getMessage())){
+        if(isAt(message.getMessage()) || !needAt) {
             String str = (String) message.getMessage().getLast().getData().get("text"); //获取文字内容
             str = str.trim(); //去除空格
             long sender = message.getSender().getUserId();
-            long groupID = message.getGroupId();
+
             log.info("bot ======> get message {} from {}",str,sender);
 
             //调用ai接口
@@ -85,7 +90,7 @@ public class GroupActionService {
             }
 
             //回复
-            setReply(sender,builder.toString(),groupID);
+            setReply(sender,builder.toString(),groupID,needAt);
         }
         return CompletableFuture.completedFuture((JSONObject) JSON.toJSON(groupReplyEntity));
     }
@@ -172,12 +177,17 @@ public class GroupActionService {
     }
 
     /**
-     *
+     * 构建回复消息
      */
-    public void setReply(long sender,String str,long groupID){
+    public void setReply(long sender,String str,long groupID,boolean needAt){
 
+        List<Chain> chains;
         //回复消息
-        List<Chain> chains = buildChain(sender,str,-1,null);
+        if(needAt){
+            chains = buildChain(sender,str,-1,null);
+        }else {
+            chains = buildChain(-1,str,-1,null);
+        }
 
         //构建回复消息
         JSONObject jsonObject = new JSONObject();
@@ -193,7 +203,7 @@ public class GroupActionService {
      * @param text 是否有文本回复  无则为null
      * @param face 是否有表情回复  无则为 -1;
      * @param file 是否有文件回复  无则为null;
-     * @return 消息链
+     * @return 构建消息链
      */
     private List<Chain> buildChain(long at,String text,int face,String file){
         //添加总文本长度
@@ -233,5 +243,5 @@ public class GroupActionService {
         }
         return list;
     }
-
 }
+
