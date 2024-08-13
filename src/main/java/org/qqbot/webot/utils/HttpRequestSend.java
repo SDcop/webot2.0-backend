@@ -2,6 +2,7 @@ package org.qqbot.webot.utils;
 
 import com.alibaba.fastjson2.JSONObject;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.qqbot.webot.config.JWTConfig;
 import org.qqbot.webot.config.RestTemplateConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
  * @describe 统一返回请求
  */
 
+@Slf4j
 @Component
 public class HttpRequestSend {
 
@@ -44,6 +46,7 @@ public class HttpRequestSend {
         httpHeaders.set("Content-Type", "application/json");
         httpHeaders.set("Authorization", "Bearer " + apiKey);
         HttpEntity<JSONObject> httpEntity = new HttpEntity<>(jsonObject,httpHeaders);
+
         return restTemplate.postForEntity(url,httpEntity,c).getBody();
     }
 }

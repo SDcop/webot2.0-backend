@@ -13,12 +13,11 @@ import org.qqbot.webot.entity.common.Chain;
 import org.qqbot.webot.entity.common.ModelMessage;
 import org.qqbot.webot.utils.HttpRequestSend;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author shq
@@ -43,46 +42,58 @@ public class GroupActionService {
     @Value("${model.chat}")
     private String chatModel; //模型
 
+    @Value("${model.chatLong}")
+    private String chatModelLong; //模型
+
+    @Value("${model.rolePlay}")
+    private String rolePlayModel;
+
+    @Value("${bot.cat}")
+    private String rolePersonality;
+
     @Value("${model.video}")
     private String videoModel; //视频模型
 
     @Value("${model.pic}")
     private String picModel; //图片模型
 
+    private int replyLength = 0;
+
     @Resource
     HttpRequestSend httpRequestSend;
 
-    public JSONObject replyGroupMessage(GroupMessageEntity message) {
+    //上下文处理
+    private HashMap<Long, Queue<ModelMessage>> context;
+
+    @Async("getAsyncExecutor")
+    public CompletableFuture<JSONObject> replyGroupMessage(GroupMessageEntity message) {
         GroupReplyEntity groupReplyEntity = new GroupReplyEntity();
         // 如果是at了boot
         if(isAt(message.getMessage())){
             String str = (String) message.getMessage().getLast().getData().get("text"); //获取文字内容
+            str = str.trim(); //去除空格
             long sender = message.getSender().getUserId();
             long groupID = message.getGroupId();
-
-            str = str.trim(); //去除空格
             log.info("bot ======> get message {} from {}",str,sender);
+
             //调用ai接口
-            BigModelResponseEntity bigModelResponseEntity = modelResponse(str);
+            BigModelResponseEntity bigModelResponseEntity = modelResponse(sender,str);
             //构造字符串的返回内容
             StringBuilder builder = new StringBuilder();
             for(int i=0;i<bigModelResponseEntity.getChoices().size();i++){
                 builder.append(bigModelResponseEntity.getChoices().get(i).getMessage().getContent());
             }
 
-            //回复消息
-            List<Chain> chains = buildChain(sender,builder.toString(),-1,null);
-            groupReplyEntity.setReply(chains);
-
-            log.info("bot ======> send message {} to {}",builder.toString(),sender);
+            //回复
+            setReply(sender,builder.toString(),groupID);
         }
-        return (JSONObject) JSON.toJSON(groupReplyEntity);
+        return CompletableFuture.completedFuture((JSONObject) JSON.toJSON(groupReplyEntity));
     }
 
     /**
      * 是否at了boot
      */
-    public boolean isAt(List<Chain> chains){
+    private boolean isAt(List<Chain> chains){
         Chain message = chains.getFirst();
         return message.getType().equals("at") && Objects.equals(message.getData().get("qq"), botAccount);
     }
@@ -91,22 +102,90 @@ public class GroupActionService {
      * 调用智谱清言接口
      * @param str "用户的发言"
      */
-    public BigModelResponseEntity modelResponse(String str){
+    private BigModelResponseEntity modelResponse(long requestId,String str){
 
         // 构建请求体
         BigModelEntity bigModelEntity = new BigModelEntity();
-        // message
         ArrayList<ModelMessage> list = new ArrayList<>();
-        ModelMessage modelMessage = new ModelMessage();
-        modelMessage.setRole("user");
-        modelMessage.setContent(str);
-        list.add(modelMessage);
+        //消息角色消息
+        ModelMessage systemMessage = new ModelMessage();
+        systemMessage.setRole("system");
+        systemMessage.setContent(rolePersonality);
+        list.add(systemMessage);
+        //用户消息
+        ModelMessage userMessage = new ModelMessage();
+        userMessage.setRole("user");
+        userMessage.setContent(str);
+        //上下文管理
+        if(this.context == null){
+            this.context = new HashMap<>();
+        }
+        if(context.containsKey(requestId)){
+            Queue<ModelMessage> queue = context.get(requestId);
+            queue.add(userMessage);
+            if(queue.size()>=10){
+                //如果上下文超出10条，则除去最前端的两条
+                queue.poll();
+                queue.poll();
+            }
+            list.addAll(queue);
+        }else {
+            Queue<ModelMessage> queue = new LinkedList<>();
+            queue.add(userMessage);
+            context.put(requestId,queue);
+            list.add(userMessage);
+        }
 
+        bigModelEntity.setRequestId(String.valueOf(requestId));
+        //设定模型
         bigModelEntity.setModel(chatModel);
         bigModelEntity.setMessages(list);
 
+        //最大token
+        bigModelEntity.setMaxToken(4095);
+
+        //工具配置
+        List<Object> toolObject = new ArrayList<>();
+
+        JSONObject object = new JSONObject();   //type
+        object.put("type","web_search");
+
+        JSONObject webSearch = new JSONObject(); //启用网络搜索
+        webSearch.put("enable",true);
+        webSearch.put("search_result",true);
+        object.put("web_search",webSearch);
+
+        toolObject.add(object);
+
+        bigModelEntity.setTools(toolObject);
+
         //http请求
-        return httpRequestSend.POST(modelUrl,JSONObject.from(bigModelEntity), BigModelResponseEntity.class);
+        BigModelResponseEntity bigModelResponseEntity = httpRequestSend.POST(modelUrl,JSONObject.from(bigModelEntity), BigModelResponseEntity.class);
+
+        //上下文管理,写入回复
+        ModelMessage assistantModel =  new ModelMessage();
+        assistantModel.setRole("assistant");
+        assistantModel.setContent(bigModelResponseEntity.getChoices().getLast().getMessage().getContent());
+        context.get(requestId).add(assistantModel);
+
+        return bigModelResponseEntity;
+    }
+
+    /**
+     *
+     */
+    public void setReply(long sender,String str,long groupID){
+
+        //回复消息
+        List<Chain> chains = buildChain(sender,str,-1,null);
+
+        //构建回复消息
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("group_id", groupID);
+        jsonObject.put("message", chains);
+        httpRequestSend.POST(qqUrl+"/send_group_msg",jsonObject,JSONObject.class);
+
+        log.info("bot ======> send message {} from {}",str,sender);
     }
 
     /**
@@ -116,7 +195,9 @@ public class GroupActionService {
      * @param file 是否有文件回复  无则为null;
      * @return 消息链
      */
-    public List<Chain> buildChain(long at,String text,int face,String file){
+    private List<Chain> buildChain(long at,String text,int face,String file){
+        //添加总文本长度
+        this.replyLength += text.length();
         List<Chain> list = new ArrayList<>();
         if(at !=-1){
             Chain chain = new Chain();
@@ -130,7 +211,7 @@ public class GroupActionService {
             Chain chain = new Chain();
             chain.setType("text");
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("text",text);
+            jsonObject.put("text"," "+text);
             chain.setData(jsonObject);
             list.add(chain);
         }
@@ -142,7 +223,7 @@ public class GroupActionService {
             chain.setData(jsonObject);
             list.add(chain);
         }
-        if(text != null){
+        if(file != null){
             Chain chain = new Chain();
             chain.setType("image");
             JSONObject jsonObject = new JSONObject();
@@ -152,4 +233,5 @@ public class GroupActionService {
         }
         return list;
     }
+
 }

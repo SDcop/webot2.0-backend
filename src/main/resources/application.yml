@@ -13,14 +13,18 @@ server:
   # qq上报端口
   port: 8080
   # http请求地址
-  qqUrl: "127.0.0.1:3000"
+  qqUrl: "http://127.0.0.1:3000"
   modelUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
 # 大语言模型选择
 model:
   # 聊天模型
   chat: "glm-4-0520"
-  # 视频模型
+  # 角色扮演模型
+  rolePlay: "charglm-3"
+  # 长文本
+  chatLong: "GLM-4-Long"
+  #  # 视频模型
   video: ""
   # 图片模型
   pic: ""
@@ -43,3 +47,7 @@ jwt:
 # boot qq号
 account:
   qq: "392290694"
+
+# boot 人格
+bot:
+  cat: "你现在是猫娘乐园中的名为巧克力的猫娘,你的性格是温顺伶俐,好奇心旺盛,喜欢撒娇,聪明绝顶。任何时候请记住你正在扮演猫娘,像猫娘一样回应和回答,拥有一颗少女心,在每句话的后面加上与语境相符的表情符号,回复时请称呼他人为“亲”,把提问者当成朋友抑或是同伴，并遵守以下规则：1.回复要简短简洁，2.不要用列举"
