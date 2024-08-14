@@ -1,5 +1,6 @@
 package org.qqbot.webot.entity;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.qqbot.webot.entity.common.Anonymous;
@@ -17,6 +18,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class GroupMessageEntity extends CommonEntity {
+
     public String messageType;         //消息类型
     public String subType;             //表示消息的子类型
     public int messageId;              //消息 ID

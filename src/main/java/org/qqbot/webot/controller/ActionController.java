@@ -1,5 +1,6 @@
 package org.qqbot.webot.controller;
 
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import jakarta.annotation.Resource;
@@ -29,10 +30,11 @@ public class ActionController {
 
         switch (msgType){
             case "message":
-                GroupMessageEntity groupMessage = JSON.to(GroupMessageEntity.class,message);
+                GroupMessageEntity groupMessage = JSONUtil.toBean(JSON.toJSONString(message),GroupMessageEntity.class);
                 return groupActionService.replyGroupMessage(groupMessage);
             case "notice":
-                return groupActionService.replyGroupNotice(message);
+                groupActionService.replyGroupNotice(message);
+                break;
         }
         return null;
     }

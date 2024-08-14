@@ -1,5 +1,6 @@
 package org.qqbot.webot.service;
 
+import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
@@ -102,26 +103,22 @@ public class GroupActionService {
      * 群通知处理
      *
      * @param notice 通知
-     * @return json数据
      */
-    @Async("getAsyncExecutor")
-    public CompletableFuture<JSONObject> replyGroupNotice(JSONObject notice){
+    public void replyGroupNotice(JSONObject notice){
         String noticeType = notice.getString("type");
         switch (noticeType) {
             case "notify":  //群提示
                 if(notice.getString("sub_type").equals("poke")){
                     //如果戳了戳bot
                     if(notice.getString("target_id").equals(botAccount)){
-                        PokeNoticeEntity pokeNotice = JSON.to(PokeNoticeEntity.class,notice);
+                        PokeNoticeEntity pokeNotice = JSONUtil.toBean(JSON.toJSONString(notice), PokeNoticeEntity.class);
                         long groupId = pokeNotice.getGroupId();
                         String reply = "喵~";
                         setReply(-1,reply,groupId,false);
                     }
                 }
-                return null;
             case "group_ban": //ban 事件
         }
-        return null;
     }
 
     /**
