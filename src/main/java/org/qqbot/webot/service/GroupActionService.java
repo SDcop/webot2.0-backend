@@ -5,10 +5,7 @@ import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import jakarta.annotation.Resource;
-import org.qqbot.webot.entity.BigModelEntity;
-import org.qqbot.webot.entity.BigModelResponseEntity;
-import org.qqbot.webot.entity.GroupMessageEntity;
-import org.qqbot.webot.entity.GroupReplyEntity;
+import org.qqbot.webot.entity.*;
 import org.qqbot.webot.entity.common.Chain;
 import org.qqbot.webot.entity.common.ModelMessage;
 import org.qqbot.webot.utils.HttpRequestSend;
@@ -65,6 +62,11 @@ public class GroupActionService {
     //上下文处理
     private HashMap<Long, Queue<ModelMessage>> context;
 
+    /**
+     * 群消息类型数据处理
+     * @param message 消息
+     * @return 快速回复内容（未启用快速回复）
+     */
     @Async("getAsyncExecutor")
     public CompletableFuture<JSONObject> replyGroupMessage(GroupMessageEntity message) {
         GroupReplyEntity groupReplyEntity = new GroupReplyEntity();
@@ -93,6 +95,33 @@ public class GroupActionService {
             setReply(sender,builder.toString(),groupID,needAt);
         }
         return CompletableFuture.completedFuture((JSONObject) JSON.toJSON(groupReplyEntity));
+    }
+
+
+    /**
+     * 群通知处理
+     *
+     * @param notice 通知
+     * @return json数据
+     */
+    @Async("getAsyncExecutor")
+    public CompletableFuture<JSONObject> replyGroupNotice(JSONObject notice){
+        String noticeType = notice.getString("type");
+        switch (noticeType) {
+            case "notify":  //群提示
+                if(notice.getString("sub_type").equals("poke")){
+                    //如果戳了戳bot
+                    if(notice.getString("target_id").equals(botAccount)){
+                        PokeNoticeEntity pokeNotice = JSON.to(PokeNoticeEntity.class,notice);
+                        long groupId = pokeNotice.getGroupId();
+                        String reply = "喵~";
+                        setReply(-1,reply,groupId,false);
+                    }
+                }
+                return null;
+            case "group_ban": //ban 事件
+        }
+        return null;
     }
 
     /**
@@ -179,7 +208,7 @@ public class GroupActionService {
     /**
      * 构建回复消息
      */
-    public void setReply(long sender,String str,long groupID,boolean needAt){
+    private void setReply(long sender,String str,long groupID,boolean needAt){
 
         List<Chain> chains;
         //回复消息
