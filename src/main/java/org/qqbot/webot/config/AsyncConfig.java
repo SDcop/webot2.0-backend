@@ -37,12 +37,12 @@ public class AsyncConfig implements AsyncConfigurer {
         executor.setQueueCapacity(50);
         // 线程池关闭：等待所有任务都完成再关闭
         executor.setWaitForTasksToCompleteOnShutdown(true);
-        // 等待时间：等待5秒后强制停止
-        executor.setAwaitTerminationSeconds(5);
+        // 等待时间：等待30秒后强制停止
+        executor.setAwaitTerminationSeconds(30);
         // 允许空闲时间：超过核心线程之外的线程到达60秒后会被销毁
         executor.setKeepAliveSeconds(60);
         // 线程名称前缀
-        executor.setThreadNamePrefix("learn-Async-");
+        executor.setThreadNamePrefix("Async-");
         // 初始化线程
         executor.initialize();
         return executor;

@@ -4,12 +4,11 @@ import com.alibaba.fastjson2.JSONObject;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.qqbot.webot.config.JWTConfig;
-import org.qqbot.webot.config.RestTemplateConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -42,11 +41,17 @@ public class HttpRequestSend {
         }
 
         //写入头
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set("Content-Type", "application/json");
-        httpHeaders.set("Authorization", "Bearer " + apiKey);
-        HttpEntity<JSONObject> httpEntity = new HttpEntity<>(jsonObject,httpHeaders);
+        try{
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.set("Content-Type", "application/json");
+            httpHeaders.set("Authorization", "Bearer " + apiKey);
+            HttpEntity<JSONObject> httpEntity = new HttpEntity<>(jsonObject,httpHeaders);
 
-        return restTemplate.postForEntity(url,httpEntity,c).getBody();
+            ResponseEntity<T> res = restTemplate.postForEntity(url,httpEntity,c);
+            return res.getBody();
+        }catch (Exception e){
+            log.error(e.getMessage());
+        }
+        return null;
     }
 }

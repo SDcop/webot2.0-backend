@@ -24,10 +24,12 @@ public class ActionController {
     GroupActionService groupActionService;
 
     @PostMapping("/oneBot")
-    public CompletableFuture<JSONObject> action (@RequestBody JSONObject message) {
+    public CompletableFuture<JSONObject> action (@RequestBody JSONObject message) throws Exception {
         //判断上报的消息类型
         String msgType = message.getString("post_type");
-
+        if(msgType == null){
+            return null;
+        }
         switch (msgType){
             case "message":
                 GroupMessageEntity groupMessage = JSONUtil.toBean(JSON.toJSONString(message),GroupMessageEntity.class);
